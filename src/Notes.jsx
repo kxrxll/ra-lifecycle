@@ -4,18 +4,25 @@ import Note from './Note';
 import { nanoid } from 'nanoid';
 
 function Notes() {
-  const [notes, setNotes] = useState();
+  const [notes, setNotes] = useState([]);
+  const [input, setInput] = useState('');
 
-  const getList = async () => {
-    fetch('http://localhost:7777/notes')
-    .then(function (response) {
-      response.json().then(function (data) {
-        return data;
-      })
-    })
+  async function getList() {
+    const response = await fetch('http://localhost:7777/notes');
+    if (response.ok) {
+      const result = await response.json();
+      return await result;
+    }
   }
 
-  console.log((getList().resolve()), 'here!');
+  async function deleteItem(id) {
+    await fetch(`http://localhost:7777/notes/${id}`, {method: 'DELETE'});
+    getList().then((result) => setNotes(result));
+  }
+
+  useEffect(() => {
+    getList().then((result) => setNotes(result));
+  }, []);
 
   async function sendItem(url, data) {
     await fetch(url, {
@@ -25,14 +32,24 @@ function Notes() {
       },
       body: JSON.stringify(data)
     });
-    const gatheredNotes = getList();
-    setNotes(gatheredNotes);
+    getList().then((result) => setNotes(result));
   }
 
   const handleSubmit = (evt) => {
     evt.preventDefault();
-    const value = evt.target.querySelector('.form-control').value;
-    sendItem('http://localhost:7777/notes', {id:nanoid(), content: value})
+    sendItem('http://localhost:7777/notes', {id:nanoid(), content: input})
+    setInput('');
+    evt.target.reset();
+  }
+
+  const handleInput = (evt) => {
+    evt.preventDefault();
+    setInput(evt.target.value);
+  }
+
+  const handleDelete = (evt) => {
+    evt.preventDefault();
+    deleteItem(evt.target.id);
   }
 
   return (
@@ -45,12 +62,13 @@ function Notes() {
         <h2>Заметки</h2>
         <form className="mb-3" onSubmit={handleSubmit}>
           <input required type="text" className="form-control" id="exampleFormControlInput1"
-          placeholder="Новая заметка" />
+          placeholder="Новая заметка"
+          onChange={handleInput} />
         </form>
         <button className="btn btn-info" type="submit" onClick={getList}>Обновить</button>
       </div>
       <div style={{display:'flex', flexWrap:'wrap'}} className='col-6'>
-      {notes ? notes.map(item => <Note  item={item} key={nanoid()} />) : false}
+      {notes ? notes.map(item => <Note  item={item} key={nanoid()} onDelete={handleDelete}/> ) : false}
       </div>
     </div>
   )

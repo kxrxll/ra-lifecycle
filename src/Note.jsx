@@ -1,17 +1,17 @@
 import React from 'react';
 import './bootstrap.css';
 
-function App() {
+function Note({item, onDelete}) {
   return (
     <div className='watch'>
       <div className="card" style={{marginLeft:'35px', marginTop:'20px'}}>
         <div className="card-body">
-          <p className="card-text">Hello!</p>
-          <button type="button" className="btn btn-danger">Удалить</button>
+          <p className="card-text">{item.content}</p>
+          <button type="button" className="btn btn-danger" id={item.id} onClick={onDelete}>Удалить</button>
         </div>
       </div>
     </div>
   )
 }
 
-export default App;
+export default Note;
